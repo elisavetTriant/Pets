@@ -16,7 +16,7 @@
 package com.example.android.pets;
 
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -31,14 +31,11 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract.PetsEntry;
-import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Allows user to create a new pet or edit an existing one.
  */
 public class EditorActivity extends AppCompatActivity {
-
-    private PetDbHelper mDbHelper;
 
     /** EditText field to enter the pet's name */
     private EditText mNameEditText;
@@ -85,29 +82,25 @@ public class EditorActivity extends AppCompatActivity {
 
             // TODO: Insert a single pet into the database
 
-            mDbHelper = new PetDbHelper(this);
-
-            SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
             ContentValues values = new ContentValues();
             values.put(PetsEntry.COLUMN_PET_NAME, nameString);
             values.put(PetsEntry.COLUMN_PET_BREED, breedString);
             values.put(PetsEntry.COLUMN_PET_WEIGHT, weight);
             values.put(PetsEntry.COLUMN_PET_GENDER, mGender);
 
-            long newRowId = db.insert(PetsEntry.TABLE_NAME, null, values);
+            Uri resultUri = getContentResolver().insert(PetsEntry.CONTENT_URI, values);
 
-            if (newRowId == -1){
-                Toast.makeText(this, "Error inserting row in the database. Try again.", Toast.LENGTH_SHORT).show();
+            if (resultUri == null){
+                Toast.makeText(this, getString(R.string.save_error_message), Toast.LENGTH_SHORT).show();
             }else {
-                Toast.makeText(this, "Pet saved with row id: " + newRowId, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.save_success_message), Toast.LENGTH_SHORT).show();
                 //now return successfully to the previous screen
                 finish();
             }
         } else if (nameString.trim().isEmpty()){
-            Toast.makeText(this, "Name cannot be null. Try inserting a name", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.not_null_name_message), Toast.LENGTH_SHORT).show();
         } else if (weightString.trim().isEmpty()){
-            Toast.makeText(this, "Weight cannot be null. Try inserting the weight.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.not_null_weight_message), Toast.LENGTH_SHORT).show();
         }
 
 
@@ -179,13 +172,5 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    // Typically, it is optimal to close the database in the onDestroy() of the calling Activity.
-    // https://developer.android.com/training/data-storage/sqlite#PersistingDbConnection
-    @Override
-    protected void onDestroy() {
-        mDbHelper.close();
-        super.onDestroy();
     }
 }

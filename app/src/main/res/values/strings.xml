@@ -58,4 +58,8 @@
 
     <!-- Label for dropdown menu option if the pet is female [CHAR LIMIT=20] -->
     <string name="gender_female">Female</string>
+    <string name="save_error_message">Error inserting row in the database. Try again.</string>
+    <string name="save_success_message">Pet saved successfully</string>
+    <string name="not_null_name_message">Name cannot be null. Try inserting a name</string>
+    <string name="not_null_weight_message">Weight cannot be null. Try inserting the weight.</string>
 </resources>

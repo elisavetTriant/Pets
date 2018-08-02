@@ -18,7 +18,7 @@ package com.example.android.pets;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -28,15 +28,13 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.pets.data.PetDbHelper;
+
 import com.example.android.pets.data.PetContract.PetsEntry;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
 public class CatalogActivity extends AppCompatActivity {
-
-    private PetDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,8 +51,6 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        mDbHelper = new PetDbHelper(this);
-
     }
 
     /**
@@ -62,12 +58,6 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        //mDbHelper = new PetDbHelper(this);
-
-        // Create and/or open a database to read from it
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
@@ -78,7 +68,7 @@ public class CatalogActivity extends AppCompatActivity {
                 PetsEntry.COLUMN_PET_GENDER,
                 PetsEntry.COLUMN_PET_WEIGHT };
 
-        Cursor cursor = db.query(PetsEntry.TABLE_NAME, projection, null, null, null, null, null);
+        Cursor cursor = getContentResolver().query(PetsEntry.CONTENT_URI, projection,null,null, null);
 
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
 
@@ -137,8 +127,6 @@ public class CatalogActivity extends AppCompatActivity {
      */
     private void insertPet() {
         // TODO: Insert a single pet into the database
-        // Gets the data repository in write mode
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
@@ -147,9 +135,7 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetsEntry.COLUMN_PET_GENDER, PetsEntry.GENDER_MALE);
         values.put(PetsEntry.COLUMN_PET_WEIGHT, 7);
 
-
-        // Insert the new row
-        long newRowId =  db.insert(PetsEntry.TABLE_NAME, null, values);
+        Uri resultUri = getContentResolver().insert(PetsEntry.CONTENT_URI, values);
     }
 
     /**
@@ -161,10 +147,8 @@ public class CatalogActivity extends AppCompatActivity {
      * So the raw SQL query would be delete * from books;
      */
     private void deleteAll(){
-        // Gets the data repository in write mode
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
-        int deletedRows = db.delete(PetsEntry.TABLE_NAME, null, null);
+        int deletedRows = getContentResolver().delete(PetsEntry.CONTENT_URI, null, null);
 
         Toast.makeText(this, "Deleted " + deletedRows + " rows from the database!", Toast.LENGTH_SHORT).show();
     }
@@ -201,11 +185,4 @@ public class CatalogActivity extends AppCompatActivity {
         displayDatabaseInfo();
     }
 
-    // Typically, it is optimal to close the database in the onDestroy() of the calling Activity.
-    // https://developer.android.com/training/data-storage/sqlite#PersistingDbConnection
-    @Override
-    protected void onDestroy() {
-        mDbHelper.close();
-        super.onDestroy();
-    }
 }
